@@ -1,0 +1,171 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Slack + Claude Code Skills</title>
+<meta name="description" content="Connect Slack to Claude Code as read-only, plus two skills: a daily digest and a draft-in-my-voice helper that never sends.">
+<style>
+  :root {
+    --bg: #f7f6f2;
+    --card: #ffffff;
+    --text: #1f2328;
+    --muted: #5c6370;
+    --border: #dcdad3;
+    --accent: #2f6f6a;
+    --accent-text: #ffffff;
+    --code-bg: #f1efe9;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #161a1d;
+      --card: #1f2427;
+      --text: #e6e6e3;
+      --muted: #a2a8ae;
+      --border: #343a3f;
+      --accent: #5fb3ab;
+      --accent-text: #0e1214;
+      --code-bg: #14181a;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font: 16px/1.55 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  }
+  main { max-width: 760px; margin: 0 auto; padding: 32px 16px 64px; }
+  h1 { font-size: 1.6rem; line-height: 1.25; margin: 0 0 8px; }
+  h2 { font-size: 1.1rem; margin: 0; }
+  p { margin: 0 0 12px; }
+  .lede { color: var(--muted); margin-bottom: 24px; }
+  ol { padding-left: 20px; margin: 0 0 28px; }
+  ol li { margin-bottom: 6px; }
+  code { background: var(--code-bg); padding: 1px 5px; border-radius: 4px; font-size: 0.92em; }
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px;
+    margin-bottom: 16px;
+  }
+  .card-head { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; justify-content: space-between; }
+  .card-desc { color: var(--muted); font-size: 0.95rem; margin: 6px 0 12px; }
+  .actions { display: flex; gap: 8px; flex-wrap: wrap; }
+  button, a.btn {
+    font: inherit; font-size: 0.9rem;
+    border: 1px solid var(--accent);
+    background: transparent; color: var(--accent);
+    padding: 6px 12px; border-radius: 6px;
+    cursor: pointer; text-decoration: none;
+  }
+  a.btn.primary { background: var(--accent); color: var(--accent-text); }
+  pre {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 12px;
+    margin: 12px 0 0;
+    overflow-x: auto;
+    white-space: pre-wrap;
+    word-break: break-word;
+    font: 13px/1.5 ui-monospace, Consolas, monospace;
+  }
+  pre[hidden] { display: none; }
+  footer { color: var(--muted); font-size: 0.85rem; margin-top: 32px; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Slack + Claude Code: read-only digest and drafts</h1>
+  <p class="lede">Connect Slack to Claude Code as read-only, then add two skills. One writes a daily digest of your messages. The other drafts replies in your voice and puts them on your clipboard. It never sends anything. You do.</p>
+
+  <ol>
+    <li>Download all three files.</li>
+    <li>Follow <code>SETUP.md</code> to connect Slack and lock it to read-only.</li>
+    <li>Install the skills, or tell Claude Code: <code>Install these two skills from my Downloads folder.</code></li>
+    <li>Run <code>/slack-digest</code> or <code>/slack-draft &lt;what you want to say&gt;</code>.</li>
+  </ol>
+
+  <div class="card" data-file="SETUP.md" data-open>
+    <div class="card-head">
+      <h2>SETUP.md</h2>
+      <div class="actions">
+        <button type="button" class="toggle">Hide</button>
+        <button type="button" class="copy">Copy</button>
+        <a class="btn primary" href="SETUP.md" download>Download</a>
+      </div>
+    </div>
+    <p class="card-desc">Connect Slack, make it read-only, install the skills.</p>
+    <pre></pre>
+  </div>
+
+  <div class="card" data-file="slack-digest.md">
+    <div class="card-head">
+      <h2>slack-digest.md</h2>
+      <div class="actions">
+        <button type="button" class="toggle">View</button>
+        <button type="button" class="copy">Copy</button>
+        <a class="btn primary" href="slack-digest.md" download>Download</a>
+      </div>
+    </div>
+    <p class="card-desc">Reads everything since the last run, checks every thread reply, writes a daily notes file. Asks of you go at the top.</p>
+    <pre hidden></pre>
+  </div>
+
+  <div class="card" data-file="slack-draft.md">
+    <div class="card-head">
+      <h2>slack-draft.md</h2>
+      <div class="actions">
+        <button type="button" class="toggle">View</button>
+        <button type="button" class="copy">Copy</button>
+        <a class="btn primary" href="slack-draft.md" download>Download</a>
+      </div>
+    </div>
+    <p class="card-desc">Drafts a message in your voice and copies it to your clipboard. Never sends. Learns from the edits you paste back.</p>
+    <pre hidden></pre>
+  </div>
+
+  <footer>The connector can't mark messages as read. Do that in Slack (Shift+Esc marks everything read).</footer>
+</main>
+
+<script>
+  document.querySelectorAll('.card').forEach(function (card) {
+    var file = card.dataset.file;
+    var pre = card.querySelector('pre');
+    var toggle = card.querySelector('.toggle');
+    var copy = card.querySelector('.copy');
+    var text = null;
+
+    function load() {
+      if (text !== null) return Promise.resolve(text);
+      return fetch(file).then(function (r) {
+        if (!r.ok) throw new Error(r.status);
+        return r.text();
+      }).then(function (t) { text = t; pre.textContent = t; return t; })
+        .catch(function () { pre.textContent = 'Could not load ' + file + '. Use Download instead.'; return ''; });
+    }
+
+    if (card.hasAttribute('data-open')) load();
+
+    toggle.addEventListener('click', function () {
+      load().then(function () {
+        pre.hidden = !pre.hidden;
+        toggle.textContent = pre.hidden ? 'View' : 'Hide';
+      });
+    });
+
+    copy.addEventListener('click', function () {
+      load().then(function (t) {
+        if (!t) return;
+        navigator.clipboard.writeText(t).then(function () {
+          copy.textContent = 'Copied';
+          setTimeout(function () { copy.textContent = 'Copy'; }, 1500);
+        });
+      });
+    });
+  });
+</script>
+</body>
+</html>
